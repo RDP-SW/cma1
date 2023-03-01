@@ -9,6 +9,7 @@
 
 namespace Scandiweb\Test\Setup\Patch\Data;
 
+use Exception;
 use Magento\Catalog\Api\CategoryLinkManagementInterface;
 use Magento\Catalog\Api\Data\ProductInterfaceFactory;
 use Magento\Catalog\Api\ProductRepositoryInterface;
@@ -23,7 +24,6 @@ use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\StateException;
-use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\InventoryApi\Api\Data\SourceItemInterface;
 use Magento\InventoryApi\Api\Data\SourceItemInterfaceFactory;
@@ -40,11 +40,6 @@ class AddTestProduct implements DataPatchInterface
 {
     const TEST_PRODUCT_SKU = 'TEST_PRODUCT_SKU';
     const CATEGORY_NAME = 'Men';
-
-    /**
-     * @var ModuleDataSetupInterface
-     */
-    protected ModuleDataSetupInterface $setup;
 
     /**
      * @var ProductInterfaceFactory
@@ -93,7 +88,6 @@ class AddTestProduct implements DataPatchInterface
 
     /**
      * AddTestProduct constructor
-     * @param ModuleDataSetupInterface $setup
      * @param ProductInterfaceFactory $productInterfaceFactory
      * @param ProductRepositoryInterface $productRepository
      * @param State $appState
@@ -105,21 +99,20 @@ class AddTestProduct implements DataPatchInterface
      * @param CollectionFactory $categoryCollectionFactory
      */
     public function __construct(
-        ModuleDataSetupInterface $setup,
-        ProductInterfaceFactory $productInterfaceFactory,
-        ProductRepositoryInterface $productRepository,
-        State $appState,
-        StoreManagerInterface $storeManager,
-        EavSetup $eavSetup,
-        SourceItemInterfaceFactory $sourceItemFactory,
-        SourceItemsSaveInterface $sourceItemsSaveInterface,
+        ProductInterfaceFactory         $productInterfaceFactory,
+        ProductRepositoryInterface      $productRepository,
+        State                           $appState,
+        StoreManagerInterface           $storeManager,
+        EavSetup                        $eavSetup,
+        SourceItemInterfaceFactory      $sourceItemFactory,
+        SourceItemsSaveInterface        $sourceItemsSaveInterface,
         CategoryLinkManagementInterface $categoryLink,
-        CollectionFactory $categoryCollectionFactory,
-    ) {
+        CollectionFactory               $categoryCollectionFactory,
+    )
+    {
         $this->appState = $appState;
         $this->productInterfaceFactory = $productInterfaceFactory;
         $this->productRepository = $productRepository;
-        $this->setup = $setup;
         $this->eavSetup = $eavSetup;
         $this->storeManager = $storeManager;
         $this->sourceItemFactory = $sourceItemFactory;
@@ -145,14 +138,13 @@ class AddTestProduct implements DataPatchInterface
     }
 
     /**
-     * @return $this|AddTestProduct
-     * @throws \Exception
+     * @return void
+     * @throws Exception
      */
-    public function apply(): AddTestProduct|static
+    public function apply(): void
     {
         // run setup in back-end area
         $this->appState->emulateAreaCode('adminhtml', [$this, 'execute']);
-        return $this;
     }
 
     /**
@@ -161,10 +153,8 @@ class AddTestProduct implements DataPatchInterface
      * @throws LocalizedException
      * @throws InputException
      */
-    public function execute()
+    public function execute(): void
     {
-        $setup = $this->setup->startSetup();
-
         $product = $this->productInterfaceFactory->create();
 
         if ($product->getIdBySku(self::TEST_PRODUCT_SKU)) {
@@ -200,7 +190,5 @@ class AddTestProduct implements DataPatchInterface
         if (count($catIds)) {
             $this->categoryLink->assignProductToCategories($product->getSku(), $catIds);
         }
-
-        $setup->endSetup();
     }
 }
